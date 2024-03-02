@@ -28,9 +28,19 @@ export function Product({ product }: { product: Product }) {
             src={product.image}
           />
         </div>
-        <div className="space-y-1 text-sm flex flex-col justify-between">
+        <div className="space-y-1 text-sm flex flex-col justify-between w-full">
           <div className="mb-4">
-            <h3 className="font-medium leading-none mb-2">{product.name}</h3>
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="font-medium leading-none text-xl">
+                {product.name}
+              </h3>
+              <span>
+                {new Intl.NumberFormat('en-US', {
+                  style: 'currency',
+                  currency: 'USD',
+                }).format(product.price)}
+              </span>
+            </div>
             <p className="text-xs text-muted-foreground">
               {product.description}
             </p>

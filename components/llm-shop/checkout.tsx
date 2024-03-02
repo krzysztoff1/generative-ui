@@ -155,7 +155,7 @@ export function Checkout({ product }: { product: Product }) {
                 : status === PaymentStatus.Success
                   ? 'Payment successful'
                   : status === PaymentStatus.Failed
-                    ? 'Payment failed'
+                    ? 'Payment failed. Go ahead and retry'
                     : 'Complete payment'}
             </Button>
           </form>
