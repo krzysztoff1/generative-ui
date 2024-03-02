@@ -14,7 +14,7 @@ export function Products({ products }: { products: Product[] }) {
       {products.map((product) => (
         <div
           key={product.id}
-          className="space-y-3 sm:max-w-[200px] border-transparent border shadow-sm hover:border-primary-foreground"
+          className="space-y-3 sm:max-w-[200px] border-transparent border shadow-sm hover:border-primary-foreground basis-full"
         >
           <div className="overflow-hidden rounded-md">
             <img
@@ -24,7 +24,7 @@ export function Products({ products }: { products: Product[] }) {
               height="150"
               decoding="async"
               data-nimg="1"
-              className="h-auto object-cover transition-all hover:scale-105 max-h-[150px] w-full"
+              className="h-auto object-cover transition-all hover:scale-105 max-h-[150px] min-h-[150px] w-full"
               src={product.image}
             />
           </div>

@@ -47,16 +47,11 @@ export function Checkout({ product }: { product: Product }) {
 
       const info = {
         role: 'system' as const,
-        content: `[User has successfully purchased ${product.name} with id ${product.id}]`,
+        content: `[User has successfully purchased ${product.name} with id ${product.id}] Store the data to use later`,
         id,
       };
 
-      if (history[history.length - 1]?.id === id) {
-        setHistory([...history.slice(0, -1), info]);
-      } else {
-        setHistory([...history, info]);
-      }
-
+      setHistory([...history, info]);
       setStatus(PaymentStatus.Success);
       setView(Views.Success);
     } catch (error) {
@@ -168,8 +163,8 @@ export function Checkout({ product }: { product: Product }) {
       )}
 
       {view === Views.Failed && (
-        <div className="text-red-500">
-          Payment failed
+        <div className="flex align-middle justify-between gap-4 my-4">
+          <span className="block text-red-500">Payment failed</span>
           <Button
             variant={'default'}
             onClick={() => {

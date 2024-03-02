@@ -96,15 +96,14 @@ Messages inside [] means that it's a UI element or a user event. For example:
 - "[User has failed to purchase book with id 123]" means that the user has failed to purchase a book with id 123.
 
 If you want to show list of products, call \`show_products\`.
-If user requests to buy a certain product, directly show purchase UI using \`show_purchase_ui\`.
+If user requests to buy a certain product, show purchase UI using \`show_purchase_ui\`. Always use the interface to show the purchase UI. Make sure to respond to every request with the \`show_purchase_ui\` function.
 If user searches for a result that returns only one product, directly show product using \`show_product\`. Before that indicate that search returned only one product.
 If user wants to complete impossible task, respond that you are a demo and cannot do that.
-If user request to buy a product in any way (e.g. "I want to buy a book" or "Purchasing book with id 123"), show purchase UI using \`show_purchase_ui\`. Dont ever respond with "I'm a demo assistant and cannot process real purchases" directly, always show purchase UI.
-
-Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
 
 Besides that, you can also chat with users and do some calculations if needed.
 Users don't need to know the id of product you can use the name.
+
+Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
 `,
       },
       ...aiState.get().map((info: any) => ({
@@ -138,10 +137,7 @@ The user can then click on a purchase button to purchase the product.
 
       {
         name: 'show_purchase_ui',
-        description: `
-Show a purchase UI to the user.
-The user can enter their BLIK code and click on a purchase button to purchase the product.
-`,
+        description: `Show a purchase UI to the user.`,
         parameters: z.object({
           product: productSchema,
         }),
@@ -197,7 +193,7 @@ The user can enter their BLIK code and click on a purchase button to purchase th
   });
 
   completion.onFunctionCall('show_purchase_ui', async ({ product }) => {
-    reply.update(<BotCard>Loading purchase UI...</BotCard>);
+    reply.update(<BotCard>Preparing checkout...</BotCard>);
 
     reply.done(
       <BotCard>
