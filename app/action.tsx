@@ -3,86 +3,40 @@ import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
 import OpenAI from 'openai';
 
-import {
-  runAsyncFnWithoutBlocking,
-  sleep,
-  formatNumber,
-  runOpenAICompletion,
-} from '@/lib/utils';
+import { runOpenAICompletion } from '@/lib/utils';
 import { z } from 'zod';
-import { SystemMessage, BotMessage } from '@/components/llm-shop/message';
+import { BotCard, BotMessage } from '@/components/llm-shop/message';
 import { spinner } from '@/components/llm-shop/spinner';
+import { Products } from '@/components/llm-shop/products';
+import { faker } from '@faker-js/faker';
+import { URL } from 'url';
+import { Product } from '@/components/llm-shop/product';
+import { Checkout } from '@/components/llm-shop/checkout';
+
+const productSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  description: z.string(),
+  price: z.number(),
+  image: z.string(),
+});
+
+export type Product = z.infer<typeof productSchema>;
+
+const products: Product[] = Array.from({ length: 4 }).map((_, i) => {
+  const name = faker.commerce.productName();
+  return {
+    id: String(i + 1),
+    name,
+    description: faker.commerce.productDescription().slice(0, 150),
+    price: Number(faker.commerce.price()),
+    image: `https://source.unsplash.com/random/900×700/?${name}`,
+  };
+});
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
 });
-
-async function confirmPurchase(symbol: string, price: number, amount: number) {
-  'use server';
-
-  const aiState = getMutableAIState<typeof AI>();
-
-  const purchasing = createStreamableUI(
-    <div className="inline-flex items-start gap-1 md:items-center">
-      {spinner}
-      <p className="mb-2">
-        Purchasing {amount} ${symbol}...
-      </p>
-    </div>,
-  );
-
-  const systemMessage = createStreamableUI(null);
-
-  runAsyncFnWithoutBlocking(async () => {
-    // You can update the UI at any point.
-    await sleep(1000);
-
-    purchasing.update(
-      <div className="inline-flex items-start gap-1 md:items-center">
-        {spinner}
-        <p className="mb-2">
-          Purchasing {amount} ${symbol}... working on it...
-        </p>
-      </div>,
-    );
-
-    await sleep(1000);
-
-    purchasing.done(
-      <div>
-        <p className="mb-2">
-          You have successfully purchased {amount} ${symbol}. Total cost:{' '}
-          {formatNumber(amount * price)}
-        </p>
-      </div>,
-    );
-
-    systemMessage.done(
-      <SystemMessage>
-        You have purchased {amount} shares of {symbol} at ${price}. Total cost ={' '}
-        {formatNumber(amount * price)}.
-      </SystemMessage>,
-    );
-
-    aiState.done([
-      ...aiState.get(),
-      {
-        role: 'system',
-        content: `[User has purchased ${amount} shares of ${symbol} at ${price}. Total cost = ${
-          amount * price
-        }]`,
-      },
-    ]);
-  });
-
-  return {
-    purchasingUI: purchasing.value,
-    newMessage: {
-      id: Date.now(),
-      display: systemMessage.value,
-    },
-  };
-}
 
 async function submitUserMessage(content: string) {
   'use server';
@@ -106,21 +60,27 @@ async function submitUserMessage(content: string) {
     messages: [
       {
         role: 'system',
-        content: `\
-You are a stock trading conversation bot and you can help users buy stocks, step by step.
-You and the user can discuss stock prices and the user can adjust the amount of stocks they want to buy, or place an order, in the UI.
+        content: `
+You are a friendly ecommerce assistant. You can help users with purchasing products, showing products, purchasing products, and other ecommerce-related tasks. You can also chat with users to request additional information or provide help.
 
 Messages inside [] means that it's a UI element or a user event. For example:
-- "[Price of AAPL = 100]" means that an interface of the stock price of AAPL is shown to the user.
-- "[User has changed the amount of AAPL to 10]" means that the user has changed the amount of AAPL to 10 in the UI.
+- "[Showing product card - book with id 123]" means that the UI is showing a product card for a book with id 123.
+- "[Showing images of book with id 123]" means that the UI is showing images of a book with id 123.
+- "[Purchasing book with id 123]" means that the user is purchasing a book with id 123.
+- "[User has successfully purchased book with id 123]" means that the user has successfully purchased a book with id 123.
+- "[User has failed to purchase book with id 123]" means that the user has failed to purchase a book with id 123.
 
-If the user requests purchasing a stock, call \`show_stock_purchase_ui\` to show the purchase UI.
-If the user just wants the price, call \`show_stock_price\` to show the price.
-If you want to show trending stocks, call \`list_stocks\`.
-If you want to show events, call \`get_events\`.
-If the user wants to sell stock, or complete another impossible task, respond that you are a demo and cannot do that.
+If you want to show list of products, call \`show_products\`.
+If user requests to buy a certain product, directly show purchase UI using \`show_purchase_ui\`.
+If user searches for a result that returns only one product, directly show product using \`show_product\`. Before that indicate that search returned only one product.
+If user wants to complete impossible task, respond that you are a demo and cannot do that.
+If user request to buy a product in any way (e.g. "I want to buy a book" or "Purchasing book with id 123"), show purchase UI using \`show_purchase_ui\`. Dont ever respond with "I'm a demo assistant and cannot process real purchases" directly, always show purchase UI.
 
-Besides that, you can also chat with users and do some calculations if needed.`,
+Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
+
+Besides that, you can also chat with users and do some calculations if needed.
+Users don't need to know the id of product you can use the name.
+`,
       },
       ...aiState.get().map((info: any) => ({
         role: info.role,
@@ -130,64 +90,34 @@ Besides that, you can also chat with users and do some calculations if needed.`,
     ],
     functions: [
       {
-        name: 'show_stock_price',
-        description:
-          'Get the current stock price of a given stock or currency. Use this to show the price to the user.',
+        name: 'show_products',
+        description: `
+Show a list of products to the user. 
+The user can then click on a product to view more details.
+`,
         parameters: z.object({
-          symbol: z
-            .string()
-            .describe(
-              'The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.',
-            ),
-          price: z.number().describe('The price of the stock.'),
-          delta: z.number().describe('The change in price of the stock'),
+          products: productSchema.array(),
         }),
       },
       {
-        name: 'show_stock_purchase_ui',
-        description:
-          'Show price and the UI to purchase a stock or currency. Use this if the user wants to purchase a stock or currency.',
+        name: 'show_product',
+        description: `
+Show a product to the user.
+The user can then click on a purchase button to purchase the product.
+`,
         parameters: z.object({
-          symbol: z
-            .string()
-            .describe(
-              'The name or symbol of the stock or currency. e.g. DOGE/AAPL/USD.',
-            ),
-          price: z.number().describe('The price of the stock.'),
-          numberOfShares: z
-            .number()
-            .describe(
-              'The **number of shares** for a stock or currency to purchase. Can be optional if the user did not specify it.',
-            ),
+          product: productSchema,
         }),
       },
+
       {
-        name: 'list_stocks',
-        description: 'List three imaginary stocks that are trending.',
+        name: 'show_purchase_ui',
+        description: `
+Show a purchase UI to the user.
+The user can enter their BLIK code and click on a purchase button to purchase the product.
+`,
         parameters: z.object({
-          stocks: z.array(
-            z.object({
-              symbol: z.string().describe('The symbol of the stock'),
-              price: z.number().describe('The price of the stock'),
-              delta: z.number().describe('The change in price of the stock'),
-            }),
-          ),
-        }),
-      },
-      {
-        name: 'get_events',
-        description:
-          'List funny imaginary events between user highlighted dates that describe stock activity.',
-        parameters: z.object({
-          events: z.array(
-            z.object({
-              date: z
-                .string()
-                .describe('The date of the event, in ISO-8601 format'),
-              headline: z.string().describe('The headline of the event'),
-              description: z.string().describe('The description of the event'),
-            }),
-          ),
+          product: productSchema,
         }),
       },
     ],
@@ -200,6 +130,63 @@ Besides that, you can also chat with users and do some calculations if needed.`,
       reply.done();
       aiState.done([...aiState.get(), { role: 'assistant', content }]);
     }
+  });
+
+  completion.onFunctionCall('show_products', async ({ products }) => {
+    reply.update(<BotCard>Loading products...</BotCard>);
+
+    reply.done(
+      <BotCard>
+        <Products products={products} />
+      </BotCard>,
+    );
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'show_products',
+        content: JSON.stringify(products),
+      },
+    ]);
+  });
+
+  completion.onFunctionCall('show_product', async ({ product }) => {
+    reply.update(<BotCard>Loading product details...</BotCard>);
+
+    reply.done(
+      <BotCard>
+        <Product product={product} />
+      </BotCard>,
+    );
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'show_product',
+        content: JSON.stringify(product),
+      },
+    ]);
+  });
+
+  completion.onFunctionCall('show_purchase_ui', async ({ product }) => {
+    reply.update(<BotCard>Loading purchase UI...</BotCard>);
+
+    reply.done(
+      <BotCard>
+        <Checkout product={product} />
+      </BotCard>,
+    );
+
+    aiState.done([
+      ...aiState.get(),
+      {
+        role: 'function',
+        name: 'show_purchase_ui',
+        content: JSON.stringify(product),
+      },
+    ]);
   });
 
   return {
