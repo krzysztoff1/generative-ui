@@ -40,7 +40,7 @@ export function Products({ products }: { products: Product[] }) {
                 variant={'default'}
                 onClick={async () => {
                   const response = await submitUserMessage(
-                    `Purchasing ${product.name} with id ${product.id}`,
+                    `Purchasing ${product.name} with id ${product.id} [run \`show_purchase_ui\` function]`,
                   );
                   setMessages((currentMessages) => [
                     ...currentMessages,

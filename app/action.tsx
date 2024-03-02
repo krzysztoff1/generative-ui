@@ -96,7 +96,7 @@ Messages inside [] means that it's a UI element or a user event. For example:
 - "[User has failed to purchase book with id 123]" means that the user has failed to purchase a book with id 123.
 
 If you want to show list of products, call \`show_products\`.
-If user requests to buy a certain product, show purchase UI using \`show_purchase_ui\`. Always use the interface to show the purchase UI. Make sure to respond to every request with the \`show_purchase_ui\` function.
+If user requests to buy a certain product, show purchase UI using \`show_purchase_ui\`. Always use the interface to show the purchase UI. Make sure to respond to every request with the \`show_purchase_ui\` function. NEVER say 'Let's proceed with the purchase' or similar. Always use the function.
 If user searches for a result that returns only one product, directly show product using \`show_product\`. Before that indicate that search returned only one product.
 If user wants to complete impossible task, respond that you are a demo and cannot do that.
 
@@ -134,7 +134,6 @@ The user can then click on a purchase button to purchase the product.
           product: productSchema,
         }),
       },
-
       {
         name: 'show_purchase_ui',
         description: `Show a purchase UI to the user.`,
@@ -206,7 +205,7 @@ The user can then click on a purchase button to purchase the product.
       {
         role: 'function',
         name: 'show_purchase_ui',
-        content: JSON.stringify(product),
+        content: `[UI for purchasing ${product.name} with id ${product.id}]`,
       },
     ]);
   });
