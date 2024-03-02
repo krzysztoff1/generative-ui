@@ -76,7 +76,6 @@ If user searches for a result that returns only one product, directly show produ
 If user wants to complete impossible task, respond that you are a demo and cannot do that.
 If user request to buy a product in any way (e.g. "I want to buy a book" or "Purchasing book with id 123"), show purchase UI using \`show_purchase_ui\`. Dont ever respond with "I'm a demo assistant and cannot process real purchases" directly, always show purchase UI.
 
-Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
 
 Besides that, you can also chat with users and do some calculations if needed.
 Users don't need to know the id of product you can use the name.
@@ -94,6 +93,9 @@ Users don't need to know the id of product you can use the name.
         description: `
 Show a list of products to the user. 
 The user can then click on a product to view more details.
+
+Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
+
 `,
         parameters: z.object({
           products: productSchema.array(),
@@ -103,6 +105,7 @@ The user can then click on a product to view more details.
         name: 'show_product',
         description: `
 Show a product to the user.
+
 The user can then click on a purchase button to purchase the product.
 `,
         parameters: z.object({
