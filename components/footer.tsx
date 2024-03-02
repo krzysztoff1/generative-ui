@@ -6,7 +6,7 @@ import { cn } from '@/lib/utils';
 import { AI } from '@/app/action';
 import { useUIState, useActions } from 'ai/rsc';
 
-const commans = ['Show products'];
+const commans = ['Show products', 'Show my purchases', 'Buy laptop'];
 
 export function FooterText({ className, ...props }: React.ComponentProps<'p'>) {
   const [, setMessages] = useUIState<typeof AI>();
