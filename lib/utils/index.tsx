@@ -24,9 +24,8 @@ export function runOpenAICompletion<
   let text = '';
   let hasFunction = false;
 
-  type FunctionNames = T['functions'] extends Array<any>
-    ? T['functions'][number]['name']
-    : never;
+  type FunctionNames =
+    T['functions'] extends Array<any> ? T['functions'][number]['name'] : never;
 
   let onTextContent: (text: string, isFinal: boolean) => void = () => {};
 
@@ -40,7 +39,7 @@ export function runOpenAICompletion<
         (await openai.chat.completions.create({
           ...rest,
           stream: true,
-          functions: functions.map(fn => ({
+          functions: functions.map((fn) => ({
             name: fn.name,
             description: fn.description,
             parameters: zodToJsonSchema(fn.parameters) as Record<
@@ -102,7 +101,7 @@ export const runAsyncFnWithoutBlocking = (
 };
 
 export const sleep = (ms: number) =>
-  new Promise(resolve => setTimeout(resolve, ms));
+  new Promise((resolve) => setTimeout(resolve, ms));
 
 // Fake data
 export function getStockPrice(name: string) {

@@ -71,7 +71,7 @@ export function Stock({ name = 'DOGE', price = 12.34, delta = 1 }) {
 
       <div
         className="relative -mx-4 cursor-col-resize"
-        onPointerDown={event => {
+        onPointerDown={(event) => {
           if (chartRef.current) {
             const { clientX } = event;
             const { left } = chartRef.current.getBoundingClientRect();
@@ -86,7 +86,7 @@ export function Stock({ name = 'DOGE', price = 12.34, delta = 1 }) {
             });
           }
         }}
-        onPointerUp={event => {
+        onPointerUp={(event) => {
           if (chartRef.current) {
             const { clientX } = event;
             const { left } = chartRef.current.getBoundingClientRect();
@@ -94,7 +94,7 @@ export function Stock({ name = 'DOGE', price = 12.34, delta = 1 }) {
             setEndHighlight(clientX - left);
           }
         }}
-        onPointerMove={event => {
+        onPointerMove={(event) => {
           if (chartRef.current) {
             const { clientX } = event;
             const { left } = chartRef.current.getBoundingClientRect();

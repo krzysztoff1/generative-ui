@@ -9,7 +9,7 @@ interface Event {
 export function Events({ events }: { events: Event[] }) {
   return (
     <div className="flex flex-col sm:flex-row gap-2 overflow-scroll py-4 -mt-2">
-      {events.map(event => (
+      {events.map((event) => (
         <div
           key={event.date}
           className="flex flex-col p-4 bg-zinc-900 rounded-md max-w-96 flex-shrink-0"

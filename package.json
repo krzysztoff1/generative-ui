@@ -1,15 +1,16 @@
 {
   "name": "ai-rsc-demo",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
   "scripts": {
-    "dev": "next dev",
     "build": "next build",
-    "start": "next start",
-    "lint": "next lint",
+    "dev": "next dev",
     "format": "prettier --write \"**/*.{ts,tsx,js,jsx}\"",
-    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx}\" --cache"
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx}\" --cache",
+    "lint": "next lint",
+    "start": "next start"
   },
+  "prettier": "@vercel/style-guide/prettier",
   "dependencies": {
     "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/react-label": "^2.0.2",
@@ -19,6 +20,7 @@
     "@radix-ui/react-tooltip": "^1.0.7",
     "@vercel/analytics": "^1.2.2",
     "@vercel/kv": "^1.0.1",
+    "@vercel/style-guide": "^5.2.0",
     "ai": "3.0.2",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
