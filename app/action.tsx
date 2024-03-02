@@ -8,8 +8,6 @@ import { z } from 'zod';
 import { BotCard, BotMessage } from '@/components/llm-shop/message';
 import { spinner } from '@/components/llm-shop/spinner';
 import { Products } from '@/components/llm-shop/products';
-import { faker } from '@faker-js/faker';
-import { URL } from 'url';
 import { Product } from '@/components/llm-shop/product';
 import { Checkout } from '@/components/llm-shop/checkout';
 
@@ -23,16 +21,16 @@ const productSchema = z.object({
 
 export type Product = z.infer<typeof productSchema>;
 
-const products: Product[] = Array.from({ length: 4 }).map((_, i) => {
-  const name = faker.commerce.productName();
-  return {
-    id: String(i + 1),
-    name,
-    description: faker.commerce.productDescription().slice(0, 150),
-    price: Number(faker.commerce.price()),
-    image: `https://source.unsplash.com/random/900×700/?${name}`,
-  };
-});
+// const products: Product[] = Array.from({ length: 4 }).map((_, i) => {
+//   const name = faker.commerce.productName();
+//   return {
+//     id: String(i + 1),
+//     name,
+//     description: faker.commerce.productDescription().slice(0, 150),
+//     price: Number(faker.commerce.price()),
+//     image: `https://source.unsplash.com/random/900×700/?${name}`,
+//   };
+// });
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -81,6 +79,7 @@ Besides that, you can also chat with users and do some calculations if needed.
 Users don't need to know the id of product you can use the name.
 `,
       },
+      // Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
       ...aiState.get().map((info: any) => ({
         role: info.role,
         content: info.content,
@@ -94,7 +93,6 @@ Users don't need to know the id of product you can use the name.
 Show a list of products to the user. 
 The user can then click on a product to view more details.
 
-Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
 
 `,
         parameters: z.object({
