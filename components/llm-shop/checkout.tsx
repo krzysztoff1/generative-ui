@@ -8,6 +8,7 @@ import { cn, sleep } from '@/lib/utils';
 import { OTPInput, SlotProps } from 'input-otp';
 import { Purchase } from '@/lib/schemas/purchase.schema';
 import { Product } from '@/lib/schemas/product.schema';
+import { SystemMessage } from './message';
 
 enum PaymentStatus {
   Idle,
@@ -26,6 +27,7 @@ export function Checkout({ product }: { product: Product }) {
   const [history, setHistory] = useAIState<typeof AI>();
 
   const [view, setView] = useState(Views.EnterOtp);
+  const [systemMessages, setSystemMessages] = useState<string[]>([]);
   const [status, setStatus] = useState(PaymentStatus.Idle);
   const [otp, setOtp] = useState('');
 
@@ -66,6 +68,13 @@ export function Checkout({ product }: { product: Product }) {
       setHistory([...history, info]);
       setStatus(PaymentStatus.Success);
       setView(Views.Success);
+      setSystemMessages((prev) => [
+        ...prev,
+        `You have successfully purchased ${product.name} for a total of ${new Intl.NumberFormat(
+          'en-US',
+          { style: 'currency', currency: 'USD' },
+        ).format(product.price)}`,
+      ]);
     } catch (error) {
       const info = {
         role: 'system' as const,
@@ -80,114 +89,123 @@ export function Checkout({ product }: { product: Product }) {
         setHistory([...history, info]);
       }
 
+      setSystemMessages((prev) => [
+        ...prev,
+        `Payment for ${product.name} failed. Please try again.`,
+      ]);
       setStatus(PaymentStatus.Failed);
       setView(Views.Failed);
     }
   };
 
   return (
-    <div>
-      <h1 className="font-bold text-2xl">Checkout</h1>
-      <hr className="my-4" />
-      <div className="flex flex-row gap-4 align-middle justify-between">
-        <h2 className="font-bold text-xl block">{product.name}</h2>
-        <span>
-          {new Intl.NumberFormat('en-US', {
-            style: 'currency',
-            currency: 'USD',
-          }).format(product.price)}
-        </span>
-      </div>
+    <>
+      <div>
+        <h1 className="font-bold text-2xl">Checkout</h1>
+        <hr className="my-4" />
+        <div className="flex flex-row gap-4 align-middle justify-between">
+          <h2 className="font-bold text-xl block">{product.name}</h2>
+          <span>
+            {new Intl.NumberFormat('en-US', {
+              style: 'currency',
+              currency: 'USD',
+            }).format(product.price)}
+          </span>
+        </div>
 
-      {view === Views.EnterOtp && (
-        <div className="p-4 border-slate-300/20 border-2 rounded-md bg-slate-100/5 my-6 flex flex-col sm:flex-row gap-4 align-middle justify-center">
-          <div>
-            <strong className="text-center">
-              Complete your payment by entering the OTP sent to your phone
-            </strong>
+        {view === Views.EnterOtp && (
+          <div className="p-4 border-slate-300/20 border-2 rounded-md bg-slate-100/5 my-6 flex flex-col sm:flex-row gap-4 align-middle justify-center">
+            <div>
+              <strong className="text-center">
+                Complete your payment by entering the OTP sent to your phone
+              </strong>
 
-            <p>
-              An OTP has been sent to your phone number ending in{' '}
-              <strong>**** 1234</strong>
+              <p>
+                An OTP has been sent to your phone number ending in{' '}
+                <strong>**** 1234</strong>
+              </p>
+            </div>
+            <form
+              onSubmit={submit}
+              className="my-4 flex flex-col align-middle justify-center gap-4"
+            >
+              <div className="flex flex-row align-middle justify-center">
+                <OTPInput
+                  maxLength={6}
+                  containerClassName="group flex items-center has-[:disabled]:opacity-30 align-middle w-content"
+                  onChange={(value) => {
+                    setOtp(value);
+                  }}
+                  render={({ slots }) => (
+                    <>
+                      <div className="flex">
+                        {slots.slice(0, 3).map((slot, idx) => (
+                          <Slot key={idx} {...slot} />
+                        ))}
+                      </div>
+
+                      <FakeDash />
+
+                      <div className="flex">
+                        {slots.slice(3).map((slot, idx) => (
+                          <Slot key={idx} {...slot} />
+                        ))}
+                      </div>
+                    </>
+                  )}
+                />
+              </div>
+
+              <Button
+                variant={'default'}
+                disabled={
+                  [PaymentStatus.Pending, PaymentStatus.Success].includes(
+                    status,
+                  ) || otp.length !== 6
+                }
+              >
+                {status === PaymentStatus.Pending
+                  ? 'Processing...'
+                  : status === PaymentStatus.Success
+                    ? 'Payment successful'
+                    : status === PaymentStatus.Failed
+                      ? 'Payment failed. Go ahead and retry'
+                      : 'Complete payment'}
+              </Button>
+            </form>
+          </div>
+        )}
+
+        {view === Views.Success && (
+          <div className="p-4 border-emerald-300/20 border-2 rounded-md bg-emerald-100/5 my-6">
+            <h2 className="font-bold text-xl">Payment successful</h2>
+
+            <p className="mt-2">
+              Your payment has been successfully processed. You will receive a
+              confirmation email shortly.
             </p>
           </div>
-          <form
-            onSubmit={submit}
-            className="my-4 flex flex-col align-middle justify-center gap-4"
-          >
-            <div className="flex flex-row align-middle justify-center">
-              <OTPInput
-                maxLength={6}
-                containerClassName="group flex items-center has-[:disabled]:opacity-30 align-middle w-content"
-                onChange={(value) => {
-                  setOtp(value);
-                }}
-                render={({ slots }) => (
-                  <>
-                    <div className="flex">
-                      {slots.slice(0, 3).map((slot, idx) => (
-                        <Slot key={idx} {...slot} />
-                      ))}
-                    </div>
+        )}
 
-                    <FakeDash />
-
-                    <div className="flex">
-                      {slots.slice(3).map((slot, idx) => (
-                        <Slot key={idx} {...slot} />
-                      ))}
-                    </div>
-                  </>
-                )}
-              />
-            </div>
-
+        {view === Views.Failed && (
+          <div className="flex align-middle justify-between gap-4 my-4">
+            <span className="block text-red-500">Payment failed</span>
             <Button
               variant={'default'}
-              disabled={
-                [PaymentStatus.Pending, PaymentStatus.Success].includes(
-                  status,
-                ) || otp.length !== 6
-              }
+              onClick={() => {
+                setView(Views.EnterOtp);
+                setStatus(PaymentStatus.Idle);
+              }}
             >
-              {status === PaymentStatus.Pending
-                ? 'Processing...'
-                : status === PaymentStatus.Success
-                  ? 'Payment successful'
-                  : status === PaymentStatus.Failed
-                    ? 'Payment failed. Go ahead and retry'
-                    : 'Complete payment'}
+              Retry payment
             </Button>
-          </form>
-        </div>
-      )}
-
-      {view === Views.Success && (
-        <div className="p-4 border-emerald-300/20 border-2 rounded-md bg-emerald-100/5 my-6">
-          <h2 className="font-bold text-xl">Payment successful</h2>
-
-          <p className="mt-2">
-            Your payment has been successfully processed. You will receive a
-            confirmation email shortly.
-          </p>
-        </div>
-      )}
-
-      {view === Views.Failed && (
-        <div className="flex align-middle justify-between gap-4 my-4">
-          <span className="block text-red-500">Payment failed</span>
-          <Button
-            variant={'default'}
-            onClick={() => {
-              setView(Views.EnterOtp);
-              setStatus(PaymentStatus.Idle);
-            }}
-          >
-            Retry payment
-          </Button>
-        </div>
-      )}
-    </div>
+          </div>
+        )}
+      </div>
+      {systemMessages.map((message, id) => (
+        <SystemMessage key={id}>{message}</SystemMessage>
+      ))}
+    </>
   );
 }
 
