@@ -21,16 +21,43 @@ const productSchema = z.object({
 
 export type Product = z.infer<typeof productSchema>;
 
-// const products: Product[] = Array.from({ length: 4 }).map((_, i) => {
-//   const name = faker.commerce.productName();
-//   return {
-//     id: String(i + 1),
-//     name,
-//     description: faker.commerce.productDescription().slice(0, 150),
-//     price: Number(faker.commerce.price()),
-//     image: `https://source.unsplash.com/random/900×700/?${name}`,
-//   };
-// });
+const products = [
+  {
+    id: '1',
+    name: 'Book',
+    description: 'A book',
+    price: 10,
+    image: 'https://source.unsplash.com/random/900×700/?book',
+  },
+  {
+    id: '2',
+    name: 'Shoes',
+    description: 'A pair of shoes',
+    price: 20,
+    image: 'https://source.unsplash.com/random/900×700/?shoes',
+  },
+  {
+    id: '3',
+    name: 'Phone',
+    description: 'A phone',
+    price: 30,
+    image: 'https://source.unsplash.com/random/900×700/?phone',
+  },
+  {
+    id: '4',
+    name: 'Laptop',
+    description: 'A laptop',
+    price: 40,
+    image: 'https://source.unsplash.com/random/900×700/?laptop',
+  },
+  {
+    id: '5',
+    name: 'Headphones',
+    description: 'A pair of headphones',
+    price: 50,
+    image: 'https://source.unsplash.com/random/900×700/?headphones',
+  },
+];
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -74,12 +101,12 @@ If user searches for a result that returns only one product, directly show produ
 If user wants to complete impossible task, respond that you are a demo and cannot do that.
 If user request to buy a product in any way (e.g. "I want to buy a book" or "Purchasing book with id 123"), show purchase UI using \`show_purchase_ui\`. Dont ever respond with "I'm a demo assistant and cannot process real purchases" directly, always show purchase UI.
 
+Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
 
 Besides that, you can also chat with users and do some calculations if needed.
 Users don't need to know the id of product you can use the name.
 `,
       },
-      // Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
       ...aiState.get().map((info: any) => ({
         role: info.role,
         content: info.content,
@@ -92,8 +119,6 @@ Users don't need to know the id of product you can use the name.
         description: `
 Show a list of products to the user. 
 The user can then click on a product to view more details.
-
-
 `,
         parameters: z.object({
           products: productSchema.array(),

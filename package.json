@@ -12,7 +12,6 @@
   },
   "prettier": "@vercel/style-guide/prettier",
   "dependencies": {
-    "@faker-js/faker": "^8.4.1",
     "@radix-ui/react-icons": "^1.3.0",
     "@radix-ui/react-label": "^2.0.2",
     "@radix-ui/react-separator": "^1.0.3",
