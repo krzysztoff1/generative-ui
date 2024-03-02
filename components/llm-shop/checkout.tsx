@@ -1,11 +1,13 @@
 'use client';
 
-import { AI, Product } from '@/app/action';
+import { AI } from '@/app/action';
 import { Button } from '../ui/button';
 import { useId, useState } from 'react';
 import { useAIState } from 'ai/rsc';
 import { cn, sleep } from '@/lib/utils';
 import { OTPInput, SlotProps } from 'input-otp';
+import { Purchase } from '@/lib/schemas/purchase.schema';
+import { Product } from '@/lib/schemas/product.schema';
 
 enum PaymentStatus {
   Idle,
@@ -35,19 +37,28 @@ export function Checkout({ product }: { product: Product }) {
     setStatus(PaymentStatus.Pending);
 
     if (otp.length !== 6) {
+      setStatus(PaymentStatus.Idle);
       return;
     }
 
     try {
-      await sleep(2000);
+      await sleep(500);
 
       if (Math.random() > 0.8) {
         throw new Error('Payment failed');
       }
 
+      const purchase: Purchase = {
+        invoiceUrl: `https://example.com/invoice/${String(Math.random() * 1000).slice(0, 4)}`,
+        product,
+        id,
+      };
+
       const info = {
         role: 'system' as const,
-        content: `[User has successfully purchased ${product.name} with id ${product.id}] Store the data to use later`,
+        content: `User has successfully purchased ${product.name} with id ${product.id}. Full purchase ${JSON.stringify(
+          purchase,
+        )}`,
         id,
       };
 
@@ -57,7 +68,7 @@ export function Checkout({ product }: { product: Product }) {
     } catch (error) {
       const info = {
         role: 'system' as const,
-        content: `[User has failed to purchase ${product.name} with id ${product.id}]`,
+        content: `User has failed to purchase ${product.name} with id ${product.id}`,
         id,
       };
 
@@ -79,7 +90,6 @@ export function Checkout({ product }: { product: Product }) {
       <hr className="my-4" />
       <div className="flex flex-row gap-4 align-middle justify-between">
         <h2 className="font-bold text-xl block">{product.name}</h2>
-        {/* format price */}
         <span>
           {new Intl.NumberFormat('en-US', {
             style: 'currency',

@@ -8,18 +8,11 @@ import { z } from 'zod';
 import { BotCard, BotMessage } from '@/components/llm-shop/message';
 import { spinner } from '@/components/llm-shop/spinner';
 import { Products } from '@/components/llm-shop/products';
-import { Product } from '@/components/llm-shop/product';
 import { Checkout } from '@/components/llm-shop/checkout';
-
-const productSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  description: z.string(),
-  price: z.number(),
-  image: z.string(),
-});
-
-export type Product = z.infer<typeof productSchema>;
+import { productSchema } from '@/lib/schemas/product.schema';
+import { Product as ProductComponent } from '@/components/llm-shop/product';
+import { Purchase, purchaseSchema } from '@/lib/schemas/purchase.schema';
+import { UserPurchases } from '@/components/llm-shop/user-purchases';
 
 const products = [
   {
@@ -80,7 +73,7 @@ async function submitUserMessage(content: string) {
   );
 
   const completion = runOpenAICompletion(openai, {
-    model: 'gpt-3.5-turbo',
+    model: process.env.NODE_ENV === 'production' ? 'gpt-3.5-turbo' : 'gpt-4',
     stream: true,
     messages: [
       {
@@ -98,9 +91,8 @@ Messages inside [] means that it's a UI element or a user event. For example:
 If you want to show list of products, call \`show_products\`.
 If user requests to buy a certain product, show purchase UI using \`show_purchase_ui\`. Always use the interface to show the purchase UI. Make sure to respond to every request with the \`show_purchase_ui\` function. NEVER say 'Let's proceed with the purchase' or similar. Always use the function.
 If user searches for a result that returns only one product, directly show product using \`show_product\`. Before that indicate that search returned only one product.
-If user wants to complete impossible task, respond that you are a demo and cannot do that.
+If user wants to show their purchases, respond with a list of their purchases using \`show_users_purchases\`.
 
-Besides that, you can also chat with users and do some calculations if needed.
 Users don't need to know the id of product you can use the name.
 
 Products: ${products.map((product) => Object.values(product).join(', ')).join('; ')}
@@ -141,6 +133,13 @@ The user can then click on a purchase button to purchase the product.
           product: productSchema,
         }),
       },
+      {
+        name: 'show_users_purchases',
+        description: `Show a list of the user's purchases.`,
+        parameters: z.object({
+          purchases: purchaseSchema.array(),
+        }),
+      },
     ],
     temperature: 0,
   });
@@ -177,7 +176,7 @@ The user can then click on a purchase button to purchase the product.
 
     reply.done(
       <BotCard>
-        <Product product={product} />
+        <ProductComponent product={product} />
       </BotCard>,
     );
 
@@ -209,6 +208,28 @@ The user can then click on a purchase button to purchase the product.
       },
     ]);
   });
+
+  completion.onFunctionCall(
+    'show_users_purchases',
+    async ({ purchases }: { purchases: Purchase[] }) => {
+      reply.update(<BotCard>Preparing checkout...</BotCard>);
+
+      reply.done(
+        <BotCard>
+          <UserPurchases purchases={purchases} />
+        </BotCard>,
+      );
+
+      aiState.done([
+        ...aiState.get(),
+        {
+          role: 'function',
+          name: 'show_users_purchases',
+          content: `[UI for showing purchases]`,
+        },
+      ]);
+    },
+  );
 
   return {
     id: Date.now(),
