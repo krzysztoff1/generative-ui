@@ -48,10 +48,11 @@ export function Checkout({ product }: { product: Product }) {
         throw new Error('Payment failed');
       }
 
+      const invoiceId = String(Math.floor(Math.random() * 1000));
       const purchase: Purchase = {
-        invoiceUrl: `https://example.com/invoice/${String(Math.random() * 1000).slice(0, 4)}`,
+        invoiceUrl: `https://example.com/invoice/${invoiceId}`,
         product,
-        id,
+        id: invoiceId,
       };
 
       const info = {
