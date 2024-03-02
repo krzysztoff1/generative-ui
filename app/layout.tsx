@@ -6,7 +6,6 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 
 import { AI } from './action';
-import { Header } from '@/components/header';
 import { Providers } from '@/components/providers';
 
 const meta = {
@@ -14,6 +13,7 @@ const meta = {
   description:
     'Demo of an interactive financial assistant built using Next.js and Vercel AI SDK.',
 };
+
 export const metadata: Metadata = {
   ...meta,
   title: {
@@ -63,7 +63,6 @@ export default function RootLayout({
             disableTransitionOnChange
           >
             <div className="flex flex-col min-h-screen">
-              <Header />
               <main className="flex flex-col flex-1 bg-muted/50 dark:bg-background">
                 {children}
               </main>

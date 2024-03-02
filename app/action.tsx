@@ -4,26 +4,14 @@ import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
 import OpenAI from 'openai';
 
 import {
-  spinner,
-  BotCard,
-  BotMessage,
-  SystemMessage,
-  Stock,
-  Purchase,
-  Stocks,
-  Events,
-} from '@/components/llm-stocks';
-
-import {
   runAsyncFnWithoutBlocking,
   sleep,
   formatNumber,
   runOpenAICompletion,
 } from '@/lib/utils';
 import { z } from 'zod';
-import { StockSkeleton } from '@/components/llm-stocks/stock-skeleton';
-import { EventsSkeleton } from '@/components/llm-stocks/events-skeleton';
-import { StocksSkeleton } from '@/components/llm-stocks/stocks-skeleton';
+import { SystemMessage, BotMessage } from '@/components/llm-shop/message';
+import { spinner } from '@/components/llm-shop/spinner';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || '',
@@ -214,146 +202,6 @@ Besides that, you can also chat with users and do some calculations if needed.`,
     }
   });
 
-  completion.onFunctionCall('list_stocks', async ({ stocks }) => {
-    reply.update(
-      <BotCard>
-        <StocksSkeleton />
-      </BotCard>,
-    );
-
-    await sleep(1000);
-
-    reply.done(
-      <BotCard>
-        <Stocks stocks={stocks} />
-      </BotCard>,
-    );
-
-    aiState.done([
-      ...aiState.get(),
-      {
-        role: 'function',
-        name: 'list_stocks',
-        content: JSON.stringify(stocks),
-      },
-    ]);
-  });
-
-  completion.onFunctionCall('get_events', async ({ events }) => {
-    reply.update(
-      <BotCard>
-        <EventsSkeleton />
-      </BotCard>,
-    );
-
-    await sleep(1000);
-
-    reply.done(
-      <BotCard>
-        <Events events={events} />
-      </BotCard>,
-    );
-
-    aiState.done([
-      ...aiState.get(),
-      {
-        role: 'function',
-        name: 'list_stocks',
-        content: JSON.stringify(events),
-      },
-    ]);
-  });
-
-  completion.onFunctionCall(
-    'show_stock_price',
-    async ({
-      symbol,
-      price,
-      delta,
-    }: {
-      symbol: string;
-      price: number;
-      delta: number;
-    }) => {
-      reply.update(
-        <BotCard>
-          <StockSkeleton />
-        </BotCard>,
-      );
-
-      await sleep(1000);
-
-      reply.done(
-        <BotCard>
-          <Stock name={symbol} price={price} delta={delta} />
-        </BotCard>,
-      );
-
-      aiState.done([
-        ...aiState.get(),
-        {
-          role: 'function',
-          name: 'show_stock_price',
-          content: `[Price of ${symbol} = ${price}]`,
-        },
-      ]);
-    },
-  );
-
-  completion.onFunctionCall(
-    'show_stock_purchase_ui',
-    ({
-      symbol,
-      price,
-      numberOfShares = 100,
-    }: {
-      symbol: string;
-      price: number;
-      numberOfShares?: number;
-    }) => {
-      if (numberOfShares <= 0 || numberOfShares > 1000) {
-        reply.done(<BotMessage>Invalid amount</BotMessage>);
-        aiState.done([
-          ...aiState.get(),
-          {
-            role: 'function',
-            name: 'show_stock_purchase_ui',
-            content: `[Invalid amount]`,
-          },
-        ]);
-        return;
-      }
-
-      reply.done(
-        <>
-          <BotMessage>
-            Sure!{' '}
-            {typeof numberOfShares === 'number'
-              ? `Click the button below to purchase ${numberOfShares} shares of $${symbol}:`
-              : `How many $${symbol} would you like to purchase?`}
-          </BotMessage>
-          <BotCard showAvatar={false}>
-            <Purchase
-              defaultAmount={numberOfShares}
-              name={symbol}
-              price={+price}
-            />
-          </BotCard>
-        </>,
-      );
-      aiState.done([
-        ...aiState.get(),
-        {
-          role: 'function',
-          name: 'show_stock_purchase_ui',
-          content: `[UI for purchasing ${numberOfShares} shares of ${symbol}. Current price = ${price}, total cost = ${
-            numberOfShares * price
-          }]`,
-        },
-      ]);
-    },
-  );
-
   return {
     id: Date.now(),
     display: reply.value,
@@ -377,7 +225,6 @@ const initialUIState: {
 export const AI = createAI({
   actions: {
     submitUserMessage,
-    confirmPurchase,
   },
   initialUIState,
   initialAIState,

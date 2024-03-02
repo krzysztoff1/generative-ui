@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 
 import { useUIState, useActions, useAIState } from 'ai/rsc';
-import { UserMessage } from '@/components/llm-stocks/message';
+import { UserMessage } from '@/components/llm-shop/message';
 
 import { type AI } from './action';
 import { ChatScrollAnchor } from '@/lib/hooks/chat-scroll-anchor';
