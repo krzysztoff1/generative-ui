@@ -3,7 +3,7 @@ import 'server-only';
 import { createAI, createStreamableUI, getMutableAIState } from 'ai/rsc';
 import OpenAI from 'openai';
 
-import { runOpenAICompletion } from '@/lib/utils';
+import { runOpenAICompletion, sleep } from '@/lib/utils';
 import { z } from 'zod';
 import { BotCard, BotMessage } from '@/components/llm-shop/message';
 import { spinner } from '@/components/llm-shop/spinner';
@@ -13,6 +13,8 @@ import { productSchema } from '@/lib/schemas/product.schema';
 import { Product as ProductComponent } from '@/components/llm-shop/product';
 import { Purchase, purchaseSchema } from '@/lib/schemas/purchase.schema';
 import { UserPurchases } from '@/components/llm-shop/user-purchases';
+import { CheckoutSkeleton } from '@/components/llm-shop/checkout-skeleton';
+import { ProductSkeleton } from '@/components/llm-shop/product-skeleton';
 
 const products = [
   {
@@ -172,7 +174,11 @@ The user can then click on a purchase button to purchase the product.
   });
 
   completion.onFunctionCall('show_product', async ({ product }) => {
-    reply.update(<BotCard>Loading product details...</BotCard>);
+    reply.update(
+      <BotCard>
+        <ProductSkeleton />
+      </BotCard>,
+    );
 
     reply.done(
       <BotCard>
@@ -191,7 +197,11 @@ The user can then click on a purchase button to purchase the product.
   });
 
   completion.onFunctionCall('show_purchase_ui', async ({ product }) => {
-    reply.update(<BotCard>Preparing checkout...</BotCard>);
+    reply.update(
+      <BotCard>
+        <CheckoutSkeleton />
+      </BotCard>,
+    );
 
     reply.done(
       <BotCard>
