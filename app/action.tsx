@@ -22,35 +22,40 @@ const products = [
     name: 'Book',
     description: 'A book',
     price: 10,
-    image: 'https://source.unsplash.com/random/900×700/?book',
+    image:
+      'https://plus.unsplash.com/premium_photo-1667251760504-096946b820af?q=80&w=2487&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: '2',
     name: 'Shoes',
     description: 'A pair of shoes',
     price: 20,
-    image: 'https://source.unsplash.com/random/900×700/?shoes',
+    image:
+      'https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=2380&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: '3',
     name: 'Phone',
     description: 'A phone',
     price: 30,
-    image: 'https://source.unsplash.com/random/900×700/?phone',
+    image:
+      'https://images.unsplash.com/photo-1525598912003-663126343e1f?q=80&w=2370&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: '4',
     name: 'Laptop',
     description: 'A laptop',
     price: 40,
-    image: 'https://source.unsplash.com/random/900×700/?laptop',
+    image:
+      'https://images.unsplash.com/photo-1496181133206-80ce9b88a853?q=80&w=2371&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
   {
     id: '5',
     name: 'Headphones',
     description: 'A pair of headphones',
     price: 50,
-    image: 'https://source.unsplash.com/random/900×700/?headphones',
+    image:
+      'https://images.unsplash.com/photo-1606400082777-ef05f3c5cde2?q=80&w=2370&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
   },
 ];
 
