@@ -4,7 +4,7 @@ import { useActions, useUIState } from 'ai/rsc';
 
 import type { AI } from '../../app/action';
 import { Button } from '../ui/button';
-import { Product } from '@/lib/schemas/product.schema';
+import { type Product } from '@/lib/schemas/product.schema';
 
 export function Product({ product }: { product: Product }) {
   const [, setMessages] = useUIState<typeof AI>();
